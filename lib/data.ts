@@ -1,8 +1,30 @@
 import { prisma } from "@/lib/prisma";
 
-export const getContacts = async () => {
+const ITEMS_PER_PAGE = 5;
+
+export const getContacts = async (query: string, currentPage: number) => {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const contacts = await prisma.contact.findMany();
+    const contacts = await prisma.contact.findMany({
+      skip: offset,
+      take: ITEMS_PER_PAGE,
+      where: {
+        OR: [
+          {
+            name: {
+              contains: query,
+              mode: "insensitive",
+            },
+          },
+          {
+            phone: {
+              contains: query,
+              mode: "insensitive",
+            },
+          },
+        ],
+      },
+    });
     return contacts;
   } catch {
     throw new Error("Failed to feetch contact data");
@@ -15,6 +37,33 @@ export const getContactsById = async (id: string) => {
       where: { id },
     });
     return contact;
+  } catch {
+    throw new Error("Failed to feetch contact data");
+  }
+};
+
+export const getContactPages = async (query: string) => {
+  try {
+    const contacts = await prisma.contact.count({
+      where: {
+        OR: [
+          {
+            name: {
+              contains: query,
+              mode: "insensitive",
+            },
+          },
+          {
+            phone: {
+              contains: query,
+              mode: "insensitive",
+            },
+          },
+        ],
+      },
+    });
+    const totalPages = Math.ceil(Number(contacts) / ITEMS_PER_PAGE);
+    return totalPages;
   } catch {
     throw new Error("Failed to feetch contact data");
   }

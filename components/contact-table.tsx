@@ -3,8 +3,14 @@ import { formatDate } from "@/lib/utils";
 import { EditButton, DeleteButton } from "@/components/button";
 import type { Contact } from "@prisma/client";
 
-const ContactTable = async () => {
-  const contacts = await getContacts();
+const ContactTable = async ({
+  query,
+  currentPage,
+}: {
+  query: string;
+  currentPage: number;
+}) => {
+  const contacts = await getContacts(query, currentPage);
 
   return (
     <table className="w-full text-gray-500 text-sm text-left">
