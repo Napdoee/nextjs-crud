@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 const ContactSchema = z.object({
   name: z.string().min(6),
@@ -65,4 +65,18 @@ export const updateContact = async (
 
   revalidatePath("/contacts");
   redirect("/contacts");
+};
+
+export const deleteContact = async (id: string) => {
+  if (!id) return notFound();
+
+  try {
+    await prisma.contact.delete({
+      where: { id },
+    });
+  } catch (error) {
+    console.error("Failed to delete contact", error);
+  }
+
+  revalidatePath("/contacts");
 };
