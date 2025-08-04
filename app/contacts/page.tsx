@@ -9,13 +9,14 @@ import { TableSkeleton } from "@/components/skeleton";
 const Contacts = async ({
   searchParams,
 }: {
-  searchParams?: {
+  searchParams?: Promise<{
     query?: string;
     page?: string;
-  };
+  }>;
 }) => {
-  const query = searchParams?.query || "";
-  const currentPage = Number(searchParams?.page) || 1;
+  const params = await searchParams;
+  const query = params?.query || "";
+  const currentPage = Number(params?.page) || 1;
 
   const totalPages = await getContactPages(query);
 
