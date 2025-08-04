@@ -11,6 +11,7 @@ const ContactTable = async ({
   currentPage: number;
 }) => {
   const contacts = await getContacts(query, currentPage);
+  if (!contacts.length) return <h1>No Contact Found</h1>;
 
   return (
     <table className="w-full text-gray-500 text-sm text-left">
