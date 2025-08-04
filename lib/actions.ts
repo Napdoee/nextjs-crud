@@ -5,20 +5,13 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-type ContactProps = {
-  name: string;
-  phone: string;
-};
-
 const ContactSchema = z.object({
   name: z.string().min(6),
   phone: z.string().min(11),
 });
 
-export const saveContact = async (
-  prevState: ContactProps,
-  formData: FormData
-) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const saveContact = async (prevState: any, formData: FormData) => {
   const validatedFields = ContactSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
@@ -37,6 +30,37 @@ export const saveContact = async (
     });
   } catch {
     return { message: "Failed to create contact" };
+  }
+
+  revalidatePath("/contacts");
+  redirect("/contacts");
+};
+
+export const updateContact = async (
+  id: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  prevState: any,
+  formData: FormData
+) => {
+  const validatedFields = ContactSchema.safeParse(
+    Object.fromEntries(formData.entries())
+  );
+  if (!validatedFields.success) {
+    return {
+      Error: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    await prisma.contact.update({
+      data: {
+        name: validatedFields.data.name,
+        phone: validatedFields.data.phone,
+      },
+      where: { id },
+    });
+  } catch {
+    return { message: "Failed to update contact" };
   }
 
   revalidatePath("/contacts");

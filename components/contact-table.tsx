@@ -1,40 +1,33 @@
 import { getContacts } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 import { EditButton, DeleteButton } from "@/components/button";
-
-type Contact = {
-  id: string;
-  name: string;
-  phone: string;
-  createdAt: Date;
-  updatedAt: Date;
-};
+import type { Contact } from "@prisma/client";
 
 const ContactTable = async () => {
   const contacts = await getContacts();
 
   return (
-    <table className="w-full text-sm text-left text-gray-500">
-      <thead className="text-sm text-gray-700 uppercase bg-gray-50">
+    <table className="w-full text-gray-500 text-sm text-left">
+      <thead className="bg-gray-50 text-gray-700 text-sm uppercase">
         <tr>
-          <th className="py-3 px-6">#</th>
-          <th className="py-3 px-6">Name</th>
-          <th className="py-3 px-6">Phone Number</th>
-          <th className="py-3 px-6">Created At</th>
-          <th className="py-3 px-6 text-center">Actions</th>
+          <th className="px-6 py-3">#</th>
+          <th className="px-6 py-3">Name</th>
+          <th className="px-6 py-3">Phone Number</th>
+          <th className="px-6 py-3">Created At</th>
+          <th className="px-6 py-3 text-center">Actions</th>
         </tr>
       </thead>
       <tbody>
         {contacts.map((contact: Contact, index: number) => (
           <tr key={contact.id}>
-            <td className="py-3 px-6">{index + 1}</td>
-            <td className="py-3 px-6">{contact.name}</td>
-            <td className="py-3 px-6">{contact.phone}</td>
-            <td className="py-3 px-6">
+            <td className="px-6 py-3">{index + 1}</td>
+            <td className="px-6 py-3">{contact.name}</td>
+            <td className="px-6 py-3">{contact.phone}</td>
+            <td className="px-6 py-3">
               {formatDate(contact.createdAt.toString())}
             </td>
             <td className="flex justify-center gap-1 py-3">
-              <EditButton />
+              <EditButton id={contact.id} />
               <DeleteButton />
             </td>
           </tr>
