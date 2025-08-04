@@ -1,10 +1,11 @@
 "use client";
 
 import { saveContact } from "@/lib/actions";
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
+import { SubmitButton } from "@/components/button";
 
 const CreateForm = () => {
-  const [state, formAction] = useFormState(saveContact, null);
+  const [state, formAction] = useActionState(saveContact, null);
 
   return (
     <div>
@@ -23,6 +24,9 @@ const CreateForm = () => {
             className="block bg-gray-50 p-2.5 border border-gray-300 focus:border-blue-500 rounded-sm focus:ring-blue-500 w-full text-gray-900 text-sm"
             placeholder="Full Name..."
           />
+          <div id="name-error" aria-live="polite" aria-atomic="true">
+            <p className="mt-2 text-red-500 text-sm">{state?.Error?.name}</p>
+          </div>
         </div>
         <div className="mb-5">
           <label
@@ -38,13 +42,14 @@ const CreateForm = () => {
             className="block bg-gray-50 p-2.5 border border-gray-300 focus:border-blue-500 rounded-sm focus:ring-blue-500 w-full text-gray-900 text-sm"
             placeholder="Phone Number..."
           />
+          <div id="phone-error" aria-live="polite" aria-atomic="true">
+            <p className="mt-2 text-red-500 text-sm">{state?.Error?.phone}</p>
+          </div>
         </div>
-        <button
-          type="submit"
-          className="bg-blue-700 hover:bg-blue-800 px-5 py-3 rounded-sm w-full font-medium text-white text-sm text-center"
-        >
-          Save
-        </button>
+        <div id="message-error" aria-live="polite" aria-atomic="true">
+          <p className="mt-2 text-red-500 text-sm">{state?.message}</p>
+        </div>
+        <SubmitButton label="save" />
       </form>
     </div>
   );
