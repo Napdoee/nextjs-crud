@@ -1,57 +1,79 @@
 "use client";
 
-import { saveContact } from "@/lib/actions";
-import { useActionState } from "react";
-import { SubmitButton } from "@/components/button";
+// import { SubmitButton } from "@/components/button";
+import { useCreateContactForm } from "@/app/hooks/contact-form.hook";
+import { useCreateContact } from "@/app/hooks/contact.hook";
+import { CreateContactInput } from "@/lib/validations/contact.validation";
+import { useRouter } from "next/navigation";
+
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  // FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
 const CreateForm = () => {
-  const [state, formAction] = useActionState(saveContact, null);
+  const form = useCreateContactForm();
+  const createContactMutation = useCreateContact();
+  const router = useRouter();
+
+  const onSubmit = (data: CreateContactInput) => {
+    createContactMutation.mutate(data, {
+      onSuccess: () => {
+        form.reset();
+        router.push("/contacts");
+      },
+      onError: (error) => {
+        // Handle error
+        console.error("Failed to create contact:", error);
+      },
+    });
+  };
 
   return (
-    <div>
-      <form action={formAction}>
-        <div className="mb-5">
-          <label
-            htmlFor="name"
-            className="block font-medium text-gray-900 text-sm"
-          >
-            Full Name
-          </label>
-          <input
-            type="text"
-            name="name"
-            id="name"
-            className="block bg-gray-50 p-2.5 border border-gray-300 focus:border-blue-500 rounded-sm focus:ring-blue-500 w-full text-gray-900 text-sm"
-            placeholder="Full Name..."
-          />
-          <div id="name-error" aria-live="polite" aria-atomic="true">
-            <p className="mt-2 text-red-500 text-sm">{state?.Error?.name}</p>
-          </div>
-        </div>
-        <div className="mb-5">
-          <label
-            htmlFor="name"
-            className="block font-medium text-gray-900 text-sm"
-          >
-            Phone Number
-          </label>
-          <input
-            type="text"
-            name="phone"
-            id="phone"
-            className="block bg-gray-50 p-2.5 border border-gray-300 focus:border-blue-500 rounded-sm focus:ring-blue-500 w-full text-gray-900 text-sm"
-            placeholder="Phone Number..."
-          />
-          <div id="phone-error" aria-live="polite" aria-atomic="true">
-            <p className="mt-2 text-red-500 text-sm">{state?.Error?.phone}</p>
-          </div>
-        </div>
-        <div id="message-error" aria-live="polite" aria-atomic="true">
-          <p className="mt-2 text-red-500 text-sm">{state?.message}</p>
-        </div>
-        <SubmitButton label="save" />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Full Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Full Name..." {...field} />
+              </FormControl>
+              {/* <FormDescription>
+                This is your public display name.
+              </FormDescription> */}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number</FormLabel>
+              <FormControl>
+                <Input placeholder="Phone Number..." {...field} />
+              </FormControl>
+              {/* <FormDescription>
+                This is your public display name.
+              </FormDescription> */}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit">Submit</Button>
       </form>
-    </div>
+    </Form>
   );
 };
 

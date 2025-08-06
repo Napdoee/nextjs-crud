@@ -1,34 +1,39 @@
 import client from "@/lib/api/client";
+import { ContactListResponse, ContactFilters, Contact } from "@/lib/types";
 
-export type Contact = {
-  id: string;
-  name: string;
-  phone: string;
-  createdAt: string;
-  updatedAt: string;
-};
+export const contactApi = {
+  async fetchContacts(filters: ContactFilters): Promise<ContactListResponse> {
+    const params = new URLSearchParams();
 
-export type ContactListResponse = {
-  contacts: Contact[];
-  total: number;
-  page: number;
-  totalPages: number;
-};
+    if (filters.query) params.append("query", filters.query);
+    if (filters.page) params.append("page", String(filters.page));
+    if (filters.limit) params.append("limit", String(filters.limit));
 
-export interface CreateContactData {
-  name?: string;
-  phone?: string;
-}
+    const response = await client.get<ContactListResponse>(
+      `/contacts?${params}`
+    );
+    return response.data;
+  },
 
-export const fetchContacts = async (
-  query: string,
-  currentPage: number
-): Promise<ContactListResponse> => {
-  const params = {
-    query,
-    page: currentPage,
-  };
+  async fetchContact(id: string): Promise<Contact> {
+    const response = await client.get<Contact>(`/contacts/${id}`);
+    return response.data;
+  },
 
-  const res = await client.get<ContactListResponse>("/contacts", { params });
-  return res.data;
+  async createContact(data: { name: string; phone: string }): Promise<Contact> {
+    const response = await client.post<Contact>("/contacts", data);
+    return response.data;
+  },
+
+  async updateContact(
+    id: string,
+    data: Partial<{ name: string; phone: string }>
+  ): Promise<Contact> {
+    const response = await client.put<Contact>(`/contacts/${id}`, data);
+    return response.data;
+  },
+
+  async deleteContact(id: string): Promise<void> {
+    await client.delete(`/contacts/${id}`);
+  },
 };

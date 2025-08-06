@@ -2,7 +2,7 @@
 
 import { formatDate } from "@/lib/utils";
 import { EditButton, DeleteButton } from "@/components/button";
-import { useContacts } from "@/app/hooks/use-contacts";
+import { useContacts } from "@/app/hooks/contact.hook";
 import { TableSkeleton } from "@/components/skeleton";
 import Pagination from "@/components/pagination";
 
@@ -13,7 +13,7 @@ const ContactTable = ({
   query: string;
   currentPage: number;
 }) => {
-  const { data, isLoading, error } = useContacts(query, currentPage);
+  const { data, isLoading, error } = useContacts({ query, page: currentPage });
   if (isLoading) return <TableSkeleton />;
   if (error) return <div>Error: {error.message}</div>;
 
