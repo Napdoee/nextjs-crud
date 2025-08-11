@@ -1,4 +1,4 @@
-import ContactTable from "@/components/contact-table";
+import ContactTable from "@/components/contacts/contact-table";
 import Search from "@/components/search";
 import { CreateButton } from "@/components/button";
 

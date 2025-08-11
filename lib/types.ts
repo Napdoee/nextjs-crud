@@ -3,23 +3,17 @@ export interface Contact {
   name: string;
   phone: string;
   createdAt: string | Date;
-  updatedAt?: string | Date;
+  updatedAt: string | Date;
 }
 
-export interface ContactListResponse {
+export interface ContactList {
   contacts: Contact[];
-  total: number;
-  page: number;
+  totalCount: number;
   totalPages: number;
+  currentPage: number;
 }
 
 export interface ContactData {
   name?: string;
   phone?: string;
-}
-
-export interface ContactFilters {
-  query?: string;
-  page?: number;
-  limit?: number;
 }

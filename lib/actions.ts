@@ -1,81 +1,149 @@
 "use server";
 
-import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
+import {
+  createContactSchema,
+  updateContactSchema,
+  CreateContactInput,
+  UpdateContactInput,
+} from "@/lib/schemas";
 
-const ContactSchema = z.object({
-  name: z.string().min(6),
-  phone: z.string().min(11),
-});
+export const getContacts = async (
+  query: string = "",
+  currentPage: number = 1
+) => {
+  const limit = 5;
+  const offset = (currentPage - 1) * limit;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const saveContact = async (prevState: any, formData: FormData) => {
-  const validatedFields = ContactSchema.safeParse(
-    Object.fromEntries(formData.entries())
-  );
-  if (!validatedFields.success) {
+  const whereClause = {
+    OR: [
+      {
+        name: {
+          contains: query,
+          mode: "insensitive" as const,
+        },
+      },
+      {
+        phone: {
+          contains: query,
+          mode: "insensitive" as const,
+        },
+      },
+    ],
+  };
+
+  try {
+    const [contacts, totalCount] = await Promise.all([
+      prisma.contact.findMany({
+        skip: offset,
+        take: limit,
+        where: whereClause,
+      }),
+      prisma.contact.count({
+        where: whereClause,
+      }),
+    ]);
+
     return {
-      Error: validatedFields.error.flatten().fieldErrors,
+      contacts,
+      totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+      currentPage,
     };
+  } catch (error) {
+    throw new Error(
+      `Failed to fetch contacts: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
+};
+
+export const getContactById = async (id: string) => {
+  try {
+    const contact = await prisma.contact.findUnique({
+      where: { id },
+    });
+    return contact;
+  } catch (error) {
+    throw new Error(
+      `Failed to save contact: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
+};
+
+export const saveContact = async (data: CreateContactInput) => {
+  const parsed = createContactSchema.safeParse(data);
+
+  if (!parsed.success) {
+    const formatted = parsed.error.flatten().fieldErrors;
+    return { Error: formatted };
+  }
+
+  const { name, phone } = parsed.data;
 
   try {
     await prisma.contact.create({
       data: {
-        name: validatedFields.data.name,
-        phone: validatedFields.data.phone,
+        name,
+        phone,
       },
     });
-  } catch {
-    return { message: "Failed to create contact" };
+  } catch (error) {
+    throw new Error(
+      `Failed to save contact: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 
   revalidatePath("/contacts");
-  redirect("/contacts");
 };
 
-export const updateContact = async (
-  id: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  prevState: any,
-  formData: FormData
-) => {
-  const validatedFields = ContactSchema.safeParse(
-    Object.fromEntries(formData.entries())
-  );
-  if (!validatedFields.success) {
-    return {
-      Error: validatedFields.error.flatten().fieldErrors,
-    };
+export const updateContact = async (id: string, data: UpdateContactInput) => {
+  const parsed = updateContactSchema.safeParse(data);
+
+  if (!parsed.success) {
+    const formatted = parsed.error.flatten().fieldErrors;
+    return { Error: formatted };
   }
 
   try {
     await prisma.contact.update({
       data: {
-        name: validatedFields.data.name,
-        phone: validatedFields.data.phone,
+        name: parsed.data.name,
+        phone: parsed.data.phone,
       },
       where: { id },
     });
-  } catch {
-    return { message: "Failed to update contact" };
+  } catch (error) {
+    throw new Error(
+      `Failed to update contact: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 
   revalidatePath("/contacts");
-  redirect("/contacts");
 };
 
 export const deleteContact = async (id: string) => {
-  if (!id) return notFound();
+  if (!id) throw new Error("ID Contact not found");
 
   try {
     await prisma.contact.delete({
       where: { id },
     });
   } catch (error) {
-    console.error("Failed to delete contact", error);
+    throw new Error(
+      `Failed to delete contacts: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 
   revalidatePath("/contacts");

@@ -1,38 +1,43 @@
 "use client";
 
-// import { SubmitButton } from "@/components/button";
-import { useCreateContactForm } from "@/app/hooks/contact-form.hook";
-import { useCreateContact } from "@/app/hooks/contact.hook";
-import { CreateContactInput } from "@/lib/validations/contact.validation";
-import { useRouter } from "next/navigation";
-
-import { Button } from "@/components/ui/button";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CreateContactInput, createContactSchema } from "@/lib/schemas";
 import {
   Form,
   FormControl,
-  // FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { useSaveContact } from "@/lib/hooks";
+import { useRouter } from "next/navigation";
 
 const CreateForm = () => {
-  const form = useCreateContactForm();
-  const createContactMutation = useCreateContact();
+  const form = useForm<CreateContactInput>({
+    resolver: zodResolver(createContactSchema),
+    defaultValues: {
+      name: "",
+      phone: "",
+    },
+    mode: "onChange",
+  });
+
   const router = useRouter();
 
+  const createMutation = useSaveContact();
+
   const onSubmit = (data: CreateContactInput) => {
-    createContactMutation.mutate(data, {
+    createMutation.mutate(data, {
       onSuccess: () => {
-        form.reset();
+        toast.success("Succesfully added new contact");
         router.push("/contacts");
       },
-      onError: (error) => {
-        // Handle error
-        console.error("Failed to create contact:", error);
-      },
+      onError: () => toast.error("There was error while added new contact"),
     });
   };
 
@@ -48,9 +53,6 @@ const CreateForm = () => {
               <FormControl>
                 <Input placeholder="Full Name..." {...field} />
               </FormControl>
-              {/* <FormDescription>
-                This is your public display name.
-              </FormDescription> */}
               <FormMessage />
             </FormItem>
           )}
@@ -64,14 +66,17 @@ const CreateForm = () => {
               <FormControl>
                 <Input placeholder="Phone Number..." {...field} />
               </FormControl>
-              {/* <FormDescription>
-                This is your public display name.
-              </FormDescription> */}
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={createMutation.isPending}
+        >
+          {createMutation.isPending ? "Saving..." : "Save Changes"}
+        </Button>
       </form>
     </Form>
   );
